@@ -1,0 +1,135 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Authenticated client profile storing display preferences and theme setting.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "displayName": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "email": { "type": "string", "format": "email", "maxLength": 160 },
+        "preferredCurrency": { "type": "string", "enum": ["NGN", "USD"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "displayName", "email", "preferredCurrency", "createdAt", "updatedAt"]
+    },
+    "SavedSearch": {
+      "title": "SavedSearch",
+      "description": "A user's saved property search filter configuration.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "name": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "query": { "type": "string", "maxLength": 120 },
+        "category": { "type": "string", "enum": ["All", "Luxury Apartment", "Villa & Home", "Shortlet Suite", "Commercial Land"] },
+        "listingMode": { "type": "string", "enum": ["All", "For Sale", "Shortlet", "Investment"] },
+        "minBeds": { "type": "number" },
+        "maxPriceNgn": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "name", "query", "category", "listingMode", "minBeds", "maxPriceNgn", "createdAt"]
+    },
+    "SavedProperty": {
+      "title": "SavedProperty",
+      "description": "A bookmarked property listing saved by a user.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "propertyId": { "type": "string", "minLength": 1, "maxLength": 64, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "propertyTitle": { "type": "string", "minLength": 1, "maxLength": 140 },
+        "location": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "priceNgn": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "propertyId", "propertyTitle", "location", "priceNgn", "createdAt"]
+    },
+    "PropertyApplication": {
+      "title": "PropertyApplication",
+      "description": "An ongoing real estate purchase, investment, or lease application tracked in the client dashboard.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "propertyId": { "type": "string", "minLength": 1, "maxLength": 64, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "propertyTitle": { "type": "string", "minLength": 1, "maxLength": 140 },
+        "agentId": { "type": "string", "minLength": 1, "maxLength": 64, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "agentName": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "applicationType": { "type": "string", "enum": ["Purchase Financing", "Outright Acquisition", "Shortlet Corporate Lease", "Investment Allocation"] },
+        "status": { "type": "string", "enum": ["Submitted", "Document Verification", "Inspection Scheduled", "Underwriting & Legal", "Approved & Closing", "Withdrawn"] },
+        "downPaymentPercent": { "type": "number" },
+        "estimatedMonthlyNgn": { "type": "number" },
+        "notes": { "type": "string", "maxLength": 600 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "userId",
+        "propertyId",
+        "propertyTitle",
+        "agentId",
+        "agentName",
+        "applicationType",
+        "status",
+        "downPaymentPercent",
+        "estimatedMonthlyNgn",
+        "notes",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Conversation": {
+      "title": "Conversation",
+      "description": "Direct advisory messaging thread between a client and an ASK MIDDLEMAN advisor.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "agentId": { "type": "string", "minLength": 1, "maxLength": 64, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "agentName": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "propertyTitle": { "type": "string", "maxLength": 140 },
+        "lastMessage": { "type": "string", "maxLength": 300 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "agentId", "agentName", "propertyTitle", "lastMessage", "createdAt", "updatedAt"]
+    },
+    "ChatMessage": {
+      "title": "ChatMessage",
+      "description": "An individual message inside a client-advisor conversation.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "senderRole": { "type": "string", "enum": ["client", "agent"] },
+        "senderName": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "body": { "type": "string", "minLength": 1, "maxLength": 1000 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "senderRole", "senderName", "body", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "Authenticated user profile and currency preferences."
+    },
+    "/savedSearches/{searchId}": {
+      "schema": { "$ref": "#/entities/SavedSearch" },
+      "description": "Saved property filter configurations owned by individual users."
+    },
+    "/savedProperties/{savedId}": {
+      "schema": { "$ref": "#/entities/SavedProperty" },
+      "description": "Bookmarked property listings owned by individual users."
+    },
+    "/applications/{applicationId}": {
+      "schema": { "$ref": "#/entities/PropertyApplication" },
+      "description": "Ongoing real estate applications tracked in the personalized client dashboard."
+    },
+    "/conversations/{conversationId}": {
+      "schema": { "$ref": "#/entities/Conversation" },
+      "description": "Direct messaging threads between clients and property advisors."
+    },
+    "/conversations/{conversationId}/messages/{messageId}": {
+      "schema": { "$ref": "#/entities/ChatMessage" },
+      "description": "Messages belonging to a specific client-advisor conversation."
+    }
+  }
+}

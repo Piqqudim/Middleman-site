@@ -1,0 +1,6 @@
+{
+  "name": "ASK MIDDLEMAN",
+  "description": "Luxury real estate discovery, interactive map view, mortgage & yield advisory, agent instant messaging, and personalized client application dashboard.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

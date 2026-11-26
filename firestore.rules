@@ -1,0 +1,191 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null && request.auth.token.email_verified == true;
+    }
+
+    function isValidUserProfile(data, uid) {
+      return data.keys().hasAll(['uid', 'displayName', 'email', 'preferredCurrency', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['uid', 'displayName', 'email', 'preferredCurrency', 'createdAt', 'updatedAt'])
+        && data.uid is string && data.uid == uid && data.uid == request.auth.uid && isValidId(data.uid)
+        && data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 120
+        && data.email is string && data.email.size() >= 3 && data.email.size() <= 160
+        && data.preferredCurrency in ['NGN', 'USD']
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidSavedSearch(data) {
+      return data.keys().hasAll(['userId', 'name', 'query', 'category', 'listingMode', 'minBeds', 'maxPriceNgn', 'createdAt'])
+        && data.keys().hasOnly(['userId', 'name', 'query', 'category', 'listingMode', 'minBeds', 'maxPriceNgn', 'createdAt'])
+        && data.userId is string && data.userId == request.auth.uid && isValidId(data.userId)
+        && data.name is string && data.name.size() >= 1 && data.name.size() <= 100
+        && data.query is string && data.query.size() <= 120
+        && data.category in ['All', 'Luxury Apartment', 'Villa & Home', 'Shortlet Suite', 'Commercial Land']
+        && data.listingMode in ['All', 'For Sale', 'Shortlet', 'Investment']
+        && data.minBeds is number && data.minBeds >= 0 && data.minBeds <= 20
+        && data.maxPriceNgn is number && data.maxPriceNgn >= 0
+        && data.createdAt is timestamp;
+    }
+
+    function isValidSavedProperty(data) {
+      return data.keys().hasAll(['userId', 'propertyId', 'propertyTitle', 'location', 'priceNgn', 'createdAt'])
+        && data.keys().hasOnly(['userId', 'propertyId', 'propertyTitle', 'location', 'priceNgn', 'createdAt'])
+        && data.userId is string && data.userId == request.auth.uid && isValidId(data.userId)
+        && data.propertyId is string && data.propertyId.size() <= 64 && isValidId(data.propertyId)
+        && data.propertyTitle is string && data.propertyTitle.size() >= 1 && data.propertyTitle.size() <= 140
+        && data.location is string && data.location.size() >= 1 && data.location.size() <= 120
+        && data.priceNgn is number && data.priceNgn >= 0
+        && data.createdAt is timestamp;
+    }
+
+    function isValidApplication(data) {
+      return data.keys().hasAll([
+          'userId', 'propertyId', 'propertyTitle', 'agentId', 'agentName',
+          'applicationType', 'status', 'downPaymentPercent', 'estimatedMonthlyNgn',
+          'notes', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'userId', 'propertyId', 'propertyTitle', 'agentId', 'agentName',
+          'applicationType', 'status', 'downPaymentPercent', 'estimatedMonthlyNgn',
+          'notes', 'createdAt', 'updatedAt'
+        ])
+        && data.userId is string && data.userId == request.auth.uid && isValidId(data.userId)
+        && data.propertyId is string && data.propertyId.size() <= 64 && isValidId(data.propertyId)
+        && data.propertyTitle is string && data.propertyTitle.size() >= 1 && data.propertyTitle.size() <= 140
+        && data.agentId is string && data.agentId.size() <= 64 && isValidId(data.agentId)
+        && data.agentName is string && data.agentName.size() >= 1 && data.agentName.size() <= 100
+        && data.applicationType in ['Purchase Financing', 'Outright Acquisition', 'Shortlet Corporate Lease', 'Investment Allocation']
+        && data.status in ['Submitted', 'Document Verification', 'Inspection Scheduled', 'Underwriting & Legal', 'Approved & Closing', 'Withdrawn']
+        && data.downPaymentPercent is number && data.downPaymentPercent >= 0 && data.downPaymentPercent <= 100
+        && data.estimatedMonthlyNgn is number && data.estimatedMonthlyNgn >= 0
+        && data.notes is string && data.notes.size() <= 600
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidConversation(data) {
+      return data.keys().hasAll(['userId', 'agentId', 'agentName', 'propertyTitle', 'lastMessage', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['userId', 'agentId', 'agentName', 'propertyTitle', 'lastMessage', 'createdAt', 'updatedAt'])
+        && data.userId is string && data.userId == request.auth.uid && isValidId(data.userId)
+        && data.agentId is string && data.agentId.size() <= 64 && isValidId(data.agentId)
+        && data.agentName is string && data.agentName.size() >= 1 && data.agentName.size() <= 100
+        && data.propertyTitle is string && data.propertyTitle.size() <= 140
+        && data.lastMessage is string && data.lastMessage.size() <= 300
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidMessage(data) {
+      return data.keys().hasAll(['userId', 'senderRole', 'senderName', 'body', 'createdAt'])
+        && data.keys().hasOnly(['userId', 'senderRole', 'senderName', 'body', 'createdAt'])
+        && data.userId is string && data.userId == request.auth.uid && isValidId(data.userId)
+        && data.senderRole in ['client', 'agent']
+        && data.senderName is string && data.senderName.size() >= 1 && data.senderName.size() <= 100
+        && data.body is string && data.body.size() >= 1 && data.body.size() <= 1000
+        && data.createdAt is timestamp;
+    }
+
+    match /users/{userId} {
+      allow get: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+      allow list: if false;
+      allow create: if isSignedIn() && isValidId(userId) && request.auth.uid == userId
+        && isValidUserProfile(incoming(), userId)
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isSignedIn() && isValidId(userId) && request.auth.uid == userId
+        && isValidUserProfile(incoming(), userId)
+        && incoming().uid == existing().uid
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'preferredCurrency', 'updatedAt']);
+      allow delete: if false;
+    }
+
+    match /savedSearches/{searchId} {
+      allow get: if isSignedIn() && isValidId(searchId) && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && existing().userId == request.auth.uid;
+      allow create: if isSignedIn() && isValidId(searchId)
+        && isValidSavedSearch(incoming())
+        && incoming().createdAt == request.time;
+      allow update: if false;
+      allow delete: if isSignedIn() && isValidId(searchId) && existing().userId == request.auth.uid;
+    }
+
+    match /savedProperties/{savedId} {
+      allow get: if isSignedIn() && isValidId(savedId) && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && existing().userId == request.auth.uid;
+      allow create: if isSignedIn() && isValidId(savedId)
+        && isValidSavedProperty(incoming())
+        && incoming().createdAt == request.time;
+      allow update: if false;
+      allow delete: if isSignedIn() && isValidId(savedId) && existing().userId == request.auth.uid;
+    }
+
+    match /applications/{applicationId} {
+      allow get: if isSignedIn() && isValidId(applicationId) && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && existing().userId == request.auth.uid;
+      allow create: if isSignedIn() && isValidId(applicationId)
+        && isValidApplication(incoming())
+        && incoming().status == 'Submitted'
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isSignedIn() && isValidId(applicationId)
+        && existing().userId == request.auth.uid
+        && !(existing().status in ['Approved & Closing', 'Withdrawn'])
+        && isValidApplication(incoming())
+        && incoming().userId == existing().userId
+        && incoming().propertyId == existing().propertyId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly(['status', 'notes', 'updatedAt']);
+      allow delete: if isSignedIn() && isValidId(applicationId) && existing().userId == request.auth.uid;
+    }
+
+    match /conversations/{conversationId} {
+      allow get: if isSignedIn() && isValidId(conversationId) && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && existing().userId == request.auth.uid;
+      allow create: if isSignedIn() && isValidId(conversationId)
+        && isValidConversation(incoming())
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isSignedIn() && isValidId(conversationId)
+        && existing().userId == request.auth.uid
+        && isValidConversation(incoming())
+        && incoming().userId == existing().userId
+        && incoming().agentId == existing().agentId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly(['lastMessage', 'propertyTitle', 'updatedAt']);
+      allow delete: if false;
+
+      match /messages/{messageId} {
+        allow get: if isSignedIn() && isValidId(conversationId) && isValidId(messageId)
+          && get(/databases/$(database)/documents/conversations/$(conversationId)).data.userId == request.auth.uid;
+        allow list: if isSignedIn() && existing().userId == request.auth.uid;
+        allow create: if isSignedIn() && isValidId(conversationId) && isValidId(messageId)
+          && isValidMessage(incoming())
+          && incoming().createdAt == request.time
+          && get(/databases/$(database)/documents/conversations/$(conversationId)).data.userId == request.auth.uid;
+        allow update, delete: if false;
+      }
+    }
+  }
+}
